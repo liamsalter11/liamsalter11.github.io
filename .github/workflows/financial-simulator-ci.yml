@@ -1,0 +1,38 @@
+name: Financial Simulator CI
+
+on:
+  push:
+    paths:
+      - "financial-simulator/**"
+      - ".github/workflows/financial-simulator-ci.yml"
+  pull_request:
+    paths:
+      - "financial-simulator/**"
+      - ".github/workflows/financial-simulator-ci.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: financial-simulator
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: financial-simulator/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sync + engine unit tests (no browser needed)
+        run: npm test
+
+      - name: Install Playwright's Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end browser tests
+        run: npm run test:e2e
